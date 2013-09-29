@@ -1,0 +1,73 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <ScrollView android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/buttonBar">
+        <LinearLayout android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+            <ImageView android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:layout_margin="0dp"
+                       android:src="@drawable/kanji"
+                       android:contentDescription="@string/kanji_to_kanji"
+                       android:adjustViewBounds="true"/>
+            <TextView android:id="@+id/textField"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="10dp"
+                      android:layout_marginLeft="20dp"
+                      android:layout_marginRight="20dp"
+                      android:gravity="center_horizontal">
+            </TextView>
+        </LinearLayout>
+    </ScrollView>
+
+    <RelativeLayout
+            android:id="@+id/buttonBar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_alignParentBottom="true">
+        <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:layout_marginLeft="4dip"
+                android:layout_marginRight="4dip"
+                android:background="?android:attr/dividerVertical"
+                android:layout_alignParentTop="true"/>
+        <View
+                android:id="@+id/ViewColorPickerHelper"
+                android:layout_width="1dip"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="4dip"
+                android:layout_marginTop="4dip"
+                android:background="?android:attr/dividerVertical"
+                android:layout_centerHorizontal="true"/>
+        <Button
+                android:id="@+id/revert_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_toLeftOf="@id/ViewColorPickerHelper"
+                android:background="?android:attr/selectableItemBackground"
+                android:text="@string/revert"
+                android:layout_alignParentBottom="true"/>
+        <Button
+                android:id="@+id/apply_fix_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:text="@string/apply_fix"
+                android:layout_alignParentBottom="true"
+                android:layout_toRightOf="@id/ViewColorPickerHelper"/>
+    </RelativeLayout>
+</RelativeLayout>
