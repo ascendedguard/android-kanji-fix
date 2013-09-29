@@ -242,7 +242,7 @@ public class MainActivity extends Activity {
                     "mount -o remount,rw /system",                         // Make system writable
                     "yes | cp -f " + backupFile + " " + originalFallback,  // Copy the new file
                     "chmod 644 /system/etc/fallback_fonts.xml",            // Set rw-r-r permissions
-                    "chown root:root /system/etc/fallback_fonts.xml",      // Set rw-r-r permissions
+                    "chown root:root /system/etc/fallback_fonts.xml",      // Set correct owner/group
                     "mount -o remount,ro /system",                         // Make it read-only again.
             };
 
