@@ -1,5 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/action_settings"
+    <item android:id="@+id/menu_more_info"
         android:title="@string/more_info"
         android:orderInCategory="100"
         android:showAsAction="never" />
