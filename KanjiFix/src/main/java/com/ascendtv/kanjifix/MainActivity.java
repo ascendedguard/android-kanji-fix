@@ -24,7 +24,11 @@ public class MainActivity extends Activity {
     private Button applyButton;
     private TextView textField;
 
-    File originalFallback = new File("/system/etc/fallback_fonts.xml");
+    private File originalFallback = new File("/system/etc/fallback_fonts.xml");
+    private File backupFile;
+    private File changedFile;
+
+    private FallbackXmlFile xmlFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,13 +43,15 @@ public class MainActivity extends Activity {
 
         textField = (TextView) findViewById(R.id.textField);
 
+        backupFile = new File(MainActivity.this.getFilesDir() + File.separator + "fallback_fonts.xml.backup");
+        changedFile = new File(MainActivity.this.getFilesDir() + File.separator + "fallback_fonts_new.xml");
+
         checkUpdateStatus();
     }
 
     private void checkUpdateStatus() {
-        String xmlFile;
         try {
-            xmlFile = getFileText(originalFallback);
+            xmlFile = new FallbackXmlFile(originalFallback);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -53,9 +59,7 @@ public class MainActivity extends Activity {
             return;
         }
 
-        File backupFile = getBackupFile();
-
-        boolean canBeApplied = isFileValidToChange(xmlFile);
+        boolean canBeApplied = xmlFile.canApplyFix();
         boolean backupFileExists = backupFile.exists();
 
         if (canBeApplied) {
@@ -77,14 +81,6 @@ public class MainActivity extends Activity {
         } else {
             textField.setText(R.string.fix_applied_no_backup);
         }
-    }
-
-    private File getBackupFile() {
-        return new File(MainActivity.this.getFilesDir() + File.separator + "fallback_fonts.xml.backup");
-    }
-
-    private File getChangedFile() {
-        return new File(MainActivity.this.getFilesDir() + File.separator + "fallback_fonts_new.xml");
     }
 
     @Override
@@ -131,37 +127,22 @@ public class MainActivity extends Activity {
                 outputDirectory.mkdirs();
             }
 
-            String xmlFile;
-            // Check if the file is valid
-
-            try {
-                xmlFile = getFileText(originalFallback);
-            }
-            catch (Exception ex) {
-                RunToastOnUiThread("File failed to read: " + ex, Toast.LENGTH_SHORT);
-                return null;
-            }
-
-            if (!xmlFile.contains("<file>DroidSansFallback.ttf</file>") || !xmlFile.contains("<file lang=\"ja\">MTLmr3m.ttf</file>")) {
+            if (!xmlFile.hasExpectedFonts()) {
                 RunToastOnUiThread("Couldn't find expected fonts in fallback_fonts.xml", Toast.LENGTH_LONG);
                 return null;
             }
 
-            if (!isFileValidToChange(xmlFile)) {
+            if (!xmlFile.canApplyFix()) {
                 RunToastOnUiThread("The fix is already applied. Can't apply it twice!", Toast.LENGTH_LONG);
                 return null;
             }
 
-            // There's probably a much better way of doing this than creating ~15KB of strings...
-            xmlFile = xmlFile.replace("<file>DroidSansFallback.ttf</file>", "<file>DroidSansFallback-Backup.ttf</file>");
-            xmlFile = xmlFile.replace("<file lang=\"ja\">MTLmr3m.ttf</file>", "<file>DroidSansFallback.ttf</file>");
-            xmlFile = xmlFile.replace("<file>DroidSansFallback-Backup.ttf</file>", "<file lang=\"ja\">MTLmr3m.ttf</file>");
-
+            xmlFile.performFontSwap();
 
             // Write the changed file locally
-            File changedFile = getChangedFile();
             try {
-                writeFileText(changedFile, xmlFile);
+                xmlFile.save(changedFile);
+                //writeFileText(changedFile, xmlFile);
             }
             catch (IOException ex) {
                 ex.printStackTrace();
@@ -170,7 +151,6 @@ public class MainActivity extends Activity {
             }
 
             // Make the backup before we copy
-            File backupFile = getBackupFile();
             try
             {
                 MainActivity.copy(originalFallback, backupFile);
@@ -223,30 +203,18 @@ public class MainActivity extends Activity {
                 return null;
             }
 
-            File originalFallback = new File("/system/etc/fallback_fonts.xml");
 
-            // Check if the file is valid
-            String xmlFile;
-            try {
-                xmlFile = getFileText(originalFallback);
-            }
-            catch (Exception ex) {
-                RunToastOnUiThread("File failed to read: " + ex, Toast.LENGTH_SHORT);
-                return null;
-            }
-
-            if (!xmlFile.contains("<file>DroidSansFallback.ttf</file>") || !xmlFile.contains("<file lang=\"ja\">MTLmr3m.ttf</file>")) {
+            if (!xmlFile.hasExpectedFonts()) {
                 RunToastOnUiThread("Couldn't find expected fonts in fallback_fonts.xml", Toast.LENGTH_LONG);
                 return null;
             }
 
-            if (isFileValidToChange(xmlFile)) {
+            if (xmlFile.canApplyFix()) {
                 RunToastOnUiThread("The fix is not applied. Can't undo what has not yet been done!", Toast.LENGTH_LONG);
                 return null;
             }
 
             // Make sure the backup exists.
-            File backupFile = getBackupFile();
             if (!backupFile.exists()) {
                 RunToastOnUiThread("The backup file was not found! Can't restore!", Toast.LENGTH_LONG);
                 return null;
@@ -277,13 +245,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private boolean isFileValidToChange(String xml) {
-        int indexOfJapanese = xml.indexOf("<file lang=\"ja\">MTLmr3m.ttf</file>");
-        int indexOfFallback = xml.indexOf("<file>DroidSansFallback.ttf</file>");
-
-        return indexOfFallback < indexOfJapanese;
-    }
-
     private void RunToastOnUiThread(final String text, final int length) {
         this.runOnUiThread(new Runnable() {
             @Override
@@ -293,48 +254,10 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void writeFileText(File outputFile, String text) throws IOException {
-        Writer out = null;
-        try {
-            out = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(outputFile), "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
-            out.write(text.toString());
-        } finally {
-            out.close();
-        }
-    }
-
-    private String getFileText(File backupFile) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(backupFile));
-        try {
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-
-            while (line != null) {
-                sb.append(line);
-                sb.append("\n");
-                line = br.readLine();
-            }
-            return sb.toString();
-        } finally {
-            try {
-                br.close();
-            } catch (IOException ex) {
-                // This should only happen if another exception is being thrown...
-                // No need to show 2 errors.
-            }
-        }
-    }
-
     View.OnClickListener applyListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            applyButton.setEnabled(false);
             (new ApplyChangesBackgroundTask()).execute();
         }
     };
@@ -342,6 +265,7 @@ public class MainActivity extends Activity {
     View.OnClickListener revertListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            revertButton.setEnabled(false);
             (new RevertChangesBackgroundTask()).execute();
         }
     };
