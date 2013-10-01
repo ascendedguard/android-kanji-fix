@@ -63,7 +63,7 @@ public class FallbackXmlFile {
             return;
         }
 
-        contents.replace(index, from.length(), to);
+        contents.replace(index, index + from.length(), to);
     }
 
     public void save(File file) throws IOException {
