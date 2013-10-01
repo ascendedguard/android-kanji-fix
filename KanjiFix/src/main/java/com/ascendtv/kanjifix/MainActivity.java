@@ -201,18 +201,7 @@ public class MainActivity extends Activity {
             }
 
 
-            if (!xmlFile.hasExpectedFonts()) {
-                RunToastOnUiThread("Couldn't find expected fonts in fallback_fonts.xml", Toast.LENGTH_LONG);
-                return null;
-            }
-
-            if (xmlFile.canApplyFix()) {
-                RunToastOnUiThread("The fix is not applied. Can't undo what has not yet been done!", Toast.LENGTH_LONG);
-                return null;
-            }
-
-            // Make sure the backup exists.
-            if (!backupFile.exists()) {
+            if (!xmlFile.hasExpectedFonts() || !backupFile.exists()) {
                 try {
                     copyOriginalFallbackToLocalStorage();
                 }
