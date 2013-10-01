@@ -3,6 +3,7 @@ package com.ascendtv.kanjifix;
 import android.app.Activity;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -64,14 +65,10 @@ public class MainActivity extends Activity {
 
         if (canBeApplied) {
             applyButton.setEnabled(true);
+            revertButton.setEnabled(false);
         } else {
             applyButton.setEnabled(false);
-        }
-
-        if (backupFileExists && !canBeApplied) {
             revertButton.setEnabled(true);
-        } else {
-            revertButton.setEnabled(false);
         }
 
         if (canBeApplied) {
@@ -216,8 +213,13 @@ public class MainActivity extends Activity {
 
             // Make sure the backup exists.
             if (!backupFile.exists()) {
-                RunToastOnUiThread("The backup file was not found! Can't restore!", Toast.LENGTH_LONG);
-                return null;
+                try {
+                    copyOriginalFallbackToLocalStorage();
+                }
+                catch (IOException ex) {
+                    RunToastOnUiThread("Backup file could not be created! Can't restore!", Toast.LENGTH_LONG);
+                    return null;
+                }
             }
 
             // Create the commands that will be run as superuser:
@@ -243,6 +245,29 @@ public class MainActivity extends Activity {
 
             MainActivity.this.checkUpdateStatus();
         }
+    }
+
+    private void copyOriginalFallbackToLocalStorage() throws IOException {
+        InputStream stream = getResources().openRawResource(R.raw.fallback_fonts);
+        FileOutputStream output = null;
+        byte[] buffer = new byte[1024];
+        try {
+            output = new FileOutputStream(backupFile);
+
+            while (stream.read(buffer) > 0) {
+                output.write(buffer);
+            }
+
+            output.flush();
+        }
+        finally {
+            stream.close();
+
+            if (output != null) {
+                output.close();
+            }
+        }
+
     }
 
     private void RunToastOnUiThread(final String text, final int length) {
