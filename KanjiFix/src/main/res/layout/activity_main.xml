@@ -25,10 +25,11 @@
                       android:gravity="center_horizontal" />
             <TextView android:id="@+id/testFont"
                       android:textSize="80dp"
-                      android:text="八"
+                      android:text="八直約刃骨船令"
                       android:layout_width="match_parent"
                       android:layout_height="wrap_content"
                       android:layout_marginTop="10dp"
+                      android:layout_marginBottom="10dp"
                       android:layout_marginLeft="20dp"
                       android:layout_marginRight="20dp"
                       android:gravity="center_horizontal" />
