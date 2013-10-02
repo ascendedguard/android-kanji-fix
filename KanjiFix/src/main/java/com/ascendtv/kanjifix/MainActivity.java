@@ -350,11 +350,12 @@ public class MainActivity extends Activity {
         InputStream stream = getResources().openRawResource(resource);
         FileOutputStream output = null;
         byte[] buffer = new byte[1024];
+        int read = 0;
         try {
             output = new FileOutputStream(outputFile);
 
-            while (stream.read(buffer) > 0) {
-                output.write(buffer);
+            while ((read = stream.read(buffer)) > 0) {
+                output.write(buffer, 0, read);
             }
 
             output.flush();
