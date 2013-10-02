@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
     private File backupFile;
     private File changedFile;
     private File ipaGothicFontLocalFile;
-    private File ipaGothicFontOutputFile = new File("/system/fonts/IPAGothic.tff");
+    private File ipaGothicFontOutputFile = new File("/system/fonts/IPAGothic.ttf");
 
     private FallbackXmlFile xmlFile;
 
