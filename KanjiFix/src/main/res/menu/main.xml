@@ -3,4 +3,8 @@
         android:title="@string/more_info"
         android:orderInCategory="100"
         android:showAsAction="never" />
+    <item android:id="@+id/menu_install_alternative"
+          android:title="@string/install_alternative"
+          android:orderInCategory="100"
+          android:showAsAction="never" />
 </menu>

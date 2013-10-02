@@ -9,8 +9,9 @@
 
     <string name="kanji_to_kanji">Kanji to Kanji</string>
     <string name="more_info">More Information</string>
+    <string name="install_alternative">Install Alternative Font</string>
 
-    <string name="fix_not_applied">"Your device is showing <b>Chinese characters</b> instead of Kanji!\n\nClick the \"Apply Fix\" button below to prioritize Japanese Kanji instead. A device reboot will be required to see any changes."</string>
-    <string name="fix_applied">"Your device is showing <b>Kanji</b>. You\'re all set!\n\nClick the \"Revert\" button below to restore your original fonts. A device reboot will be required."</string>
-    <string name="fix_applied_no_backup">"Your device is showing <b>Kanji</b>. You\'re all set!\n\nNo backup of your original file was found, but we can try to revert using the stock Android fonts.\n\nIf your ROM uses custom fonts, you may not want to try this."</string>
+    <string name="fix_not_applied">"Your device is showing <b>Chinese characters</b> instead of Kanji!\n\nClick the \"Apply Fix\" button below to prioritize Japanese Kanji instead. A device reboot will be required to see any changes.\n\nBelow is an example of what your current font looks like:"</string>
+    <string name="fix_applied">"Your device is showing <b>Kanji</b>. You\'re all set!\n\nClick the \"Revert\" button below to restore your original fonts. A device reboot will be required.\n\nBelow is an example of what your current font looks like:"</string>
+    <string name="fix_applied_no_backup">"Your device is showing <b>Kanji</b>. You\'re all set!\n\nNo backup of your original file was found, but we can try to revert using the stock Android fonts.\n\nIf your ROM uses custom fonts, you may not want to try this.\n\nBelow is an example of what your current font looks like:"</string>
 </resources>

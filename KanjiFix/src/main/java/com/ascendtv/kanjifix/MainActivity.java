@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.*;
+import java.util.ArrayList;
 
 import eu.chainfire.libsuperuser.*;
 
@@ -28,6 +29,8 @@ public class MainActivity extends Activity {
     private File originalFallback = new File("/system/etc/fallback_fonts.xml");
     private File backupFile;
     private File changedFile;
+    private File ipaGothicFontLocalFile;
+    private File ipaGothicFontOutputFile = new File("/system/fonts/IPAGothic.tff");
 
     private FallbackXmlFile xmlFile;
 
@@ -46,6 +49,7 @@ public class MainActivity extends Activity {
 
         backupFile = new File(MainActivity.this.getFilesDir() + File.separator + "fallback_fonts.xml.backup");
         changedFile = new File(MainActivity.this.getFilesDir() + File.separator + "fallback_fonts_new.xml");
+        ipaGothicFontLocalFile = new File(MainActivity.this.getFilesDir() + File.separator + "IPAGothic.tff");
 
         checkUpdateStatus();
     }
@@ -87,6 +91,8 @@ public class MainActivity extends Activity {
         return true;
     }
 
+    private boolean applyingPatch = false;
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -94,6 +100,14 @@ public class MainActivity extends Activity {
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ascendedguard/android-kanji-fix/wiki"));
                 startActivity(browserIntent);
                 return true;
+            case R.id.menu_install_alternative:
+                if (applyingPatch) {
+                    return true;
+                }
+
+                applyingPatch = true;
+                applyButton.setEnabled(false);
+                (new ApplyAlternativeChangesBackgroundTask()).execute();
         }
 
         return false;
@@ -177,7 +191,103 @@ public class MainActivity extends Activity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            applyingPatch = false;
+            MainActivity.this.checkUpdateStatus();
+        }
+    }
 
+    private class ApplyAlternativeChangesBackgroundTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                // running on the main thread
+                RunToastOnUiThread("Running on main thread. Cannot proceed.", Toast.LENGTH_SHORT);
+                return null;
+            } else {
+                // not running on the main thread
+            }
+
+            boolean rooted = Shell.SU.available();
+            if (!rooted) {
+                // This can also happen if ADB Shell is open with root access.
+                RunToastOnUiThread("Root was not detected. Root is required to continue.", Toast.LENGTH_LONG);
+                return null;
+            }
+
+
+            File outputDirectory = MainActivity.this.getFilesDir();
+
+            if (!outputDirectory.exists()) {
+                outputDirectory.mkdirs();
+            }
+
+            if (!xmlFile.hasExpectedFonts()) {
+                RunToastOnUiThread("Couldn't find expected fonts in fallback_fonts.xml", Toast.LENGTH_LONG);
+                return null;
+            }
+
+            if (!xmlFile.canApplyFix()) {
+                RunToastOnUiThread("The fix is already applied. Can't apply it twice!", Toast.LENGTH_LONG);
+                return null;
+            }
+
+            xmlFile.performAlternativeFontSwap();
+
+            try{
+                copyAlternativeFontToLocalStorage();
+            }
+            catch (IOException ex) {
+                ex.printStackTrace();
+                RunToastOnUiThread("Failed to copy IPAGothic font to local storage.", Toast.LENGTH_LONG);
+                return null;
+            }
+
+            // Write the changed file locally
+            try {
+                xmlFile.save(changedFile);
+                //writeFileText(changedFile, xmlFile);
+            }
+            catch (IOException ex) {
+                ex.printStackTrace();
+                RunToastOnUiThread("Failed to write changes to file.", Toast.LENGTH_LONG);
+                return null;
+            }
+
+            // Make the backup before we copy
+            try
+            {
+                MainActivity.copy(originalFallback, backupFile);
+            }
+            catch (IOException ex) {
+                RunToastOnUiThread("File failed to copy. " + ex, Toast.LENGTH_SHORT);
+                return null;
+            }
+
+            // Create the commands that will be run as superuser:
+            String[] commands = new String[] {
+                    "mount -o remount,rw /system",                         // Make system writable
+                    "yes | cp -f " + ipaGothicFontLocalFile + " " + ipaGothicFontOutputFile, // Write new font
+                    "chmod 644 " + ipaGothicFontOutputFile,                                  // Set rw-r-r on font
+                    "chown root:root " + ipaGothicFontOutputFile,                            // Set font owner
+                    "yes | cp -f " + changedFile + " " + originalFallback, // Copy the new file
+                    "chmod 644 /system/etc/fallback_fonts.xml",            // Set rw-r-r permissions
+                    "chown root:root /system/etc/fallback_fonts.xml",      // Set correct owner/group
+                    "mount -o remount,ro /system",                         // Make it read-only again.
+            };
+
+            // Superuser execute:
+            Shell.SU.run(commands);
+
+            RunToastOnUiThread("Fonts successfully fixed. A reboot is required.", Toast.LENGTH_LONG);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            applyingPatch = false;
             MainActivity.this.checkUpdateStatus();
         }
     }
@@ -231,17 +341,17 @@ public class MainActivity extends Activity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-
+            applyingPatch = false;
             MainActivity.this.checkUpdateStatus();
         }
     }
 
-    private void copyOriginalFallbackToLocalStorage() throws IOException {
-        InputStream stream = getResources().openRawResource(R.raw.fallback_fonts);
+    private void copyRawResourceToFile(int resource, File outputFile) throws IOException {
+        InputStream stream = getResources().openRawResource(resource);
         FileOutputStream output = null;
         byte[] buffer = new byte[1024];
         try {
-            output = new FileOutputStream(backupFile);
+            output = new FileOutputStream(outputFile);
 
             while (stream.read(buffer) > 0) {
                 output.write(buffer);
@@ -256,7 +366,14 @@ public class MainActivity extends Activity {
                 output.close();
             }
         }
+    }
 
+    private void copyOriginalFallbackToLocalStorage() throws IOException {
+        copyRawResourceToFile(R.raw.fallback_fonts, backupFile);
+    }
+
+    private void copyAlternativeFontToLocalStorage() throws IOException {
+        copyRawResourceToFile(R.raw.ipa_gothic, ipaGothicFontLocalFile);
     }
 
     private void RunToastOnUiThread(final String text, final int length) {
@@ -271,6 +388,12 @@ public class MainActivity extends Activity {
     View.OnClickListener applyListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            if (applyingPatch) {
+                return;
+            }
+
+            applyingPatch = true;
+
             applyButton.setEnabled(false);
             (new ApplyChangesBackgroundTask()).execute();
         }
@@ -279,6 +402,12 @@ public class MainActivity extends Activity {
     View.OnClickListener revertListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            if (applyingPatch) {
+                return;
+            }
+
+            applyingPatch = true;
+
             revertButton.setEnabled(false);
             (new RevertChangesBackgroundTask()).execute();
         }

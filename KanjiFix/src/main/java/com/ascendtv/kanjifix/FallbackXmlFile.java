@@ -13,6 +13,7 @@ public class FallbackXmlFile {
     private final String DROID_SANS_FONT = "<file>DroidSansFallback.ttf</file>";
     private final String DROID_JAPANESE_FONT = "<file lang=\"ja\">MTLmr3m.ttf</file>";
     private final String TEMP_SWAP_STRING = "<file>DroidSansFallback-Backup.ttf</file>";
+    private final String ALT_JAPANESE_FONT = "<file lang=\"ja\">IPAGothic.ttf</file>";
 
     public FallbackXmlFile(File file) throws IOException {
         contents = readFileContents(file);
@@ -45,7 +46,9 @@ public class FallbackXmlFile {
     }
 
     public boolean canApplyFix() {
-        int indexOfJapanese = contents.indexOf(DROID_JAPANESE_FONT);
+        final String JA_LANGUAGE_POSITION = "lang=\"ja\"";
+
+        int indexOfJapanese = contents.indexOf(JA_LANGUAGE_POSITION);
         int indexOfFallback = contents.indexOf(DROID_SANS_FONT);
 
         return indexOfFallback < indexOfJapanese;
@@ -55,6 +58,12 @@ public class FallbackXmlFile {
         replaceString(DROID_SANS_FONT, TEMP_SWAP_STRING);
         replaceString(DROID_JAPANESE_FONT, DROID_SANS_FONT);
         replaceString(TEMP_SWAP_STRING, DROID_JAPANESE_FONT);
+    }
+
+    public void performAlternativeFontSwap() {
+        replaceString(DROID_SANS_FONT, TEMP_SWAP_STRING);
+        replaceString(DROID_JAPANESE_FONT, DROID_SANS_FONT);
+        replaceString(TEMP_SWAP_STRING, ALT_JAPANESE_FONT);
     }
 
     private void replaceString(String from, String to) {

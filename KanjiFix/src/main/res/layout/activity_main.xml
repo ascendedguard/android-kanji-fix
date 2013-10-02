@@ -15,15 +15,23 @@
                        android:layout_margin="0dp"
                        android:src="@drawable/kanji"
                        android:contentDescription="@string/kanji_to_kanji"
-                       android:adjustViewBounds="true"/>
+                       android:adjustViewBounds="true" />
             <TextView android:id="@+id/textField"
                       android:layout_width="match_parent"
                       android:layout_height="wrap_content"
                       android:layout_marginTop="10dp"
                       android:layout_marginLeft="20dp"
                       android:layout_marginRight="20dp"
-                      android:gravity="center_horizontal">
-            </TextView>
+                      android:gravity="center_horizontal" />
+            <TextView android:id="@+id/testFont"
+                      android:textSize="80dp"
+                      android:text="八"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="10dp"
+                      android:layout_marginLeft="20dp"
+                      android:layout_marginRight="20dp"
+                      android:gravity="center_horizontal" />
         </LinearLayout>
     </ScrollView>
 
