@@ -46,9 +46,7 @@ public class FallbackXmlFile {
     }
 
     public boolean canApplyFix() {
-        final String JA_LANGUAGE_POSITION = "lang=\"ja\"";
-
-        int indexOfJapanese = contents.indexOf(JA_LANGUAGE_POSITION);
+        int indexOfJapanese = contents.indexOf(DROID_JAPANESE_FONT);
         int indexOfFallback = contents.indexOf(DROID_SANS_FONT);
 
         return indexOfFallback < indexOfJapanese;

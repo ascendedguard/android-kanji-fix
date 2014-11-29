@@ -77,7 +77,7 @@ public class MainActivity extends Activity {
 
         if (canBeApplied) {
             textField.setText(R.string.fix_not_applied);
-        } else if (!canBeApplied && backupFileExists) {
+        } else if (backupFileExists) {
             textField.setText(R.string.fix_applied);
         } else {
             textField.setText(R.string.fix_applied_no_backup);
