@@ -33,6 +33,22 @@
                       android:layout_marginLeft="20dp"
                       android:layout_marginRight="20dp"
                       android:gravity="center_horizontal" />
+            <TextView android:id="@+id/textReference"
+                android:text="@string/reference_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:gravity="center_horizontal" />
+            <ImageView android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:src="@drawable/reference_font"
+                android:contentDescription="@string/reference_font"
+                android:adjustViewBounds="true" />
         </LinearLayout>
     </ScrollView>
 

@@ -8,6 +8,8 @@
     <string name="revert">Revert</string>
 
     <string name="kanji_to_kanji">Kanji to Kanji</string>
+    <string name="reference_font">Reference Japanese font</string>
+    <string name="reference_text">The characters above should match the Kanji shown below:</string>
     <string name="more_info">More Information</string>
     <string name="install_alternative">Install Alternative Font</string>
 
