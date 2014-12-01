@@ -1,6 +1,7 @@
 package com.ascendtv.kanjifix;
 
 import android.content.res.Resources;
+import android.os.Build;
 
 import java.io.*;
 
@@ -10,13 +11,38 @@ import java.io.*;
 public class FallbackXmlFile {
     private StringBuilder contents;
 
-    private final String DROID_SANS_FONT = "<file>DroidSansFallback.ttf</file>";
-    private final String DROID_JAPANESE_FONT = "<file lang=\"ja\">MTLmr3m.ttf</file>";
-    private final String TEMP_SWAP_STRING = "<file>DroidSansFallback-Backup.ttf</file>";
-    private final String ALT_JAPANESE_FONT = "<file lang=\"ja\">IPAGothic.ttf</file>";
+    // Doesn't really matter, as long as its unique to both files.
+    private final String TEMP_SWAP_STRING = "DroidSansFallback-Backup.ttf";
 
-    public FallbackXmlFile(File file) throws IOException {
-        contents = readFileContents(file);
+    private String droidReplaceFont;
+    private String droidJapaneseFont;
+    private String droidAlternateFont;
+
+    private File fontFile;
+
+    public FallbackXmlFile() throws IOException {
+
+        int SDK_INT = Build.VERSION.SDK_INT;
+
+        if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // 5.0+
+
+            droidReplaceFont = "    <family lang=\"zh-Hans\">\n" +
+                    "        <font weight=\"400\" style=\"normal\">NotoSansHans-Regular.otf</font>\n" +
+                    "    </family>";
+            droidJapaneseFont = "    <family lang=\"ja\">\n" +
+                    "        <font weight=\"400\" style=\"normal\">MTLmr3m.ttf</font>\n" +
+                    "    </family>";
+            droidAlternateFont = "    <family lang=\"ja\">\n" +
+                    "        <font weight=\"400\" style=\"normal\">IPAGothic.ttf</font>\n" +
+                    "    </family>";
+        } else { // 4.1 - 4.4
+            droidReplaceFont = "<file>DroidSansFallback.ttf</file>";
+            droidJapaneseFont = "<file lang=\"ja\">MTLmr3m.ttf</file>";
+            droidAlternateFont = "<file lang=\"ja\">IPAGothic.ttf</file>";
+        }
+
+        fontFile = FallbackXmlFile.getFontFile();
+        contents = readFileContents(fontFile);
     }
 
     private StringBuilder readFileContents(File file) throws IOException {
@@ -42,26 +68,43 @@ public class FallbackXmlFile {
     }
 
     public boolean hasExpectedFonts() {
-        return (contents.indexOf(DROID_SANS_FONT) > -1 && contents.indexOf(DROID_JAPANESE_FONT) > -1);
+        return (contents.indexOf(droidReplaceFont) > -1 && contents.indexOf(droidJapaneseFont) > -1);
     }
 
     public boolean canApplyFix() {
-        int indexOfJapanese = contents.indexOf(DROID_JAPANESE_FONT);
-        int indexOfFallback = contents.indexOf(DROID_SANS_FONT);
+        int indexOfJapanese = contents.indexOf(droidJapaneseFont);
+        int indexOfFallback = contents.indexOf(droidReplaceFont);
 
         return indexOfFallback < indexOfJapanese;
     }
 
     public void performFontSwap() {
-        replaceString(DROID_SANS_FONT, TEMP_SWAP_STRING);
-        replaceString(DROID_JAPANESE_FONT, DROID_SANS_FONT);
-        replaceString(TEMP_SWAP_STRING, DROID_JAPANESE_FONT);
+        replaceString(droidReplaceFont, TEMP_SWAP_STRING);
+        replaceString(droidJapaneseFont, droidReplaceFont);
+        replaceString(TEMP_SWAP_STRING, droidJapaneseFont);
     }
 
+    public static File getFontFile() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // 5.0+
+            return new File("/system/etc/fonts.xml");
+        } else {
+            return new File("/system/etc/fallback_fonts.xml");
+        }
+    }
+
+    public static String getBackupFontFile() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // 5.0+
+            return "fonts.xml.backup";
+        } else {
+            return "fallback_fonts.xml.backup";
+        }
+    }
+
+
     public void performAlternativeFontSwap() {
-        replaceString(DROID_SANS_FONT, TEMP_SWAP_STRING);
-        replaceString(DROID_JAPANESE_FONT, DROID_SANS_FONT);
-        replaceString(TEMP_SWAP_STRING, ALT_JAPANESE_FONT);
+        replaceString(droidReplaceFont, TEMP_SWAP_STRING);
+        replaceString(droidJapaneseFont, droidReplaceFont);
+        replaceString(TEMP_SWAP_STRING, droidAlternateFont);
     }
 
     private void replaceString(String from, String to) {

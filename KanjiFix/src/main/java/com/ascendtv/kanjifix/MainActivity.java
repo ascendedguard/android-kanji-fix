@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.Menu;
@@ -26,7 +27,9 @@ public class MainActivity extends Activity {
     private Button applyButton;
     private TextView textField;
 
-    private File originalFallback = new File("/system/etc/fallback_fonts.xml");
+    //private File originalFallback = new File("/system/etc/fonts.xml");
+    //private File originalFallback = new File("/system/etc/fallback_fonts.xml");
+    private File originalFallback;
     private File backupFile;
     private File changedFile;
     private File ipaGothicFontLocalFile;
@@ -47,16 +50,19 @@ public class MainActivity extends Activity {
 
         textField = (TextView) findViewById(R.id.textField);
 
-        backupFile = new File(MainActivity.this.getFilesDir() + File.separator + "fallback_fonts.xml.backup");
-        changedFile = new File(MainActivity.this.getFilesDir() + File.separator + "fallback_fonts_new.xml");
-        ipaGothicFontLocalFile = new File(MainActivity.this.getFilesDir() + File.separator + "IPAGothic.tff");
+        String dir = MainActivity.this.getFilesDir() + File.separator;
+        backupFile = new File(dir + FallbackXmlFile.getBackupFontFile());
+        changedFile = new File(dir + "fallback_fonts_new.xml");
+        ipaGothicFontLocalFile = new File(dir + "IPAGothic.tff");
+
+        originalFallback = FallbackXmlFile.getFontFile();
 
         checkUpdateStatus();
     }
 
     private void checkUpdateStatus() {
         try {
-            xmlFile = new FallbackXmlFile(originalFallback);
+            xmlFile = new FallbackXmlFile();
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -160,6 +166,7 @@ public class MainActivity extends Activity {
                 RunToastOnUiThread("Failed to write changes to file.", Toast.LENGTH_LONG);
                 return null;
             }
+
 
             // Make the backup before we copy
             try
@@ -370,7 +377,11 @@ public class MainActivity extends Activity {
     }
 
     private void copyOriginalFallbackToLocalStorage() throws IOException {
-        copyRawResourceToFile(R.raw.fallback_fonts, backupFile);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            copyRawResourceToFile(R.raw.fonts, backupFile);
+        } else {
+            copyRawResourceToFile(R.raw.fallback_fonts, backupFile);
+        }
     }
 
     private void copyAlternativeFontToLocalStorage() throws IOException {
