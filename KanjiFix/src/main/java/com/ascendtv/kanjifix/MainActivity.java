@@ -26,6 +26,8 @@ public class MainActivity extends Activity {
     private Button revertButton;
     private Button applyButton;
     private TextView textField;
+    private MenuItem installBackupScriptItem;
+    private MenuItem removeBackupScriptItem;
 
     //private File originalFallback = new File("/system/etc/fonts.xml");
     //private File originalFallback = new File("/system/etc/fallback_fonts.xml");
@@ -33,7 +35,9 @@ public class MainActivity extends Activity {
     private File backupFile;
     private File changedFile;
     private File ipaGothicFontLocalFile;
+    private File backupScriptLocalFile;
     private File ipaGothicFontOutputFile = new File("/system/fonts/IPAGothic.ttf");
+    private File backupScriptOutputFile = new File("/system/addon.d/51-kanji.sh");
 
     private FallbackXmlFile xmlFile;
 
@@ -54,6 +58,7 @@ public class MainActivity extends Activity {
         backupFile = new File(dir + FallbackXmlFile.getBackupFontFile());
         changedFile = new File(dir + "fallback_fonts_new.xml");
         ipaGothicFontLocalFile = new File(dir + "IPAGothic.tff");
+        backupScriptLocalFile = new File(dir + "51-kanji.sh");
 
         originalFallback = FallbackXmlFile.getFontFile();
 
@@ -94,6 +99,18 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        installBackupScriptItem = menu.findItem(R.id.menu_install_backup_script);
+        removeBackupScriptItem = menu.findItem(R.id.menu_remove_backup_script);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        boolean scriptExists = backupScriptOutputFile.exists();
+        installBackupScriptItem.setVisible(!scriptExists);
+        removeBackupScriptItem.setVisible(scriptExists);
+
         return true;
     }
 
@@ -114,6 +131,23 @@ public class MainActivity extends Activity {
                 applyingPatch = true;
                 applyButton.setEnabled(false);
                 (new ApplyAlternativeChangesBackgroundTask()).execute();
+                return true;
+            case R.id.menu_install_backup_script:
+                if (applyingPatch) {
+                    return true;
+                }
+
+                applyingPatch = true;
+                (new CreateBackupScriptBackgroundTask()).execute();
+                return true;
+            case R.id.menu_remove_backup_script:
+                if (applyingPatch) {
+                    return true;
+                }
+
+                applyingPatch = true;
+                (new RemoveScriptBackgroundTask()).execute();
+                return true;
         }
 
         return false;
@@ -353,6 +387,117 @@ public class MainActivity extends Activity {
         }
     }
 
+    private class CreateBackupScriptBackgroundTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                // running on the main thread
+                RunToastOnUiThread("Running on main thread. Cannot proceed.", Toast.LENGTH_SHORT);
+                return null;
+            } else {
+                // not running on the main thread
+            }
+
+            boolean rooted = Shell.SU.available();
+            if (!rooted) {
+                // This can also happen if ADB Shell is open with root access.
+                RunToastOnUiThread("Root was not detected. Root is required to continue.", Toast.LENGTH_LONG);
+                return null;
+            }
+
+
+            File outputDirectory = MainActivity.this.getFilesDir();
+
+            if (!outputDirectory.exists()) {
+                outputDirectory.mkdirs();
+            }
+
+            if (xmlFile.canApplyFix()) {
+                RunToastOnUiThread("The fix must be applied first!", Toast.LENGTH_LONG);
+                return null;
+            }
+
+            try{
+                copyBackupScriptToLocalStorage();
+            }
+            catch (IOException ex) {
+                ex.printStackTrace();
+                RunToastOnUiThread("Failed to copy backup script to local storage.", Toast.LENGTH_LONG);
+                return null;
+            }
+
+            // Create the commands that will be run as superuser:
+            String[] commands = new String[] {
+                    "mount -o remount,rw /system",                         // Make system writable
+                    "yes | cp -f " + backupScriptLocalFile + " " + backupScriptOutputFile, // Write addon.d file
+                    "chmod 755 " + backupScriptOutputFile,                                  // Set rwxr-xr-x on script
+                    "chown root:root " + backupScriptOutputFile,                            // Set script owner
+                    "mount -o remount,ro /system",                         // Make it read-only again.
+            };
+
+            // Superuser execute:
+            Shell.SU.run(commands);
+
+            RunToastOnUiThread("Backup addon.d script installed. Fix should stay between flashes.", Toast.LENGTH_LONG);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            applyingPatch = false;
+        }
+    }
+
+    private class RemoveScriptBackgroundTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                // running on the main thread
+                RunToastOnUiThread("Running on main thread. Cannot proceed.", Toast.LENGTH_SHORT);
+                return null;
+            } else {
+                // not running on the main thread
+            }
+
+            boolean rooted = Shell.SU.available();
+            if (!rooted) {
+                // This can also happen if ADB Shell is open with root access.
+                RunToastOnUiThread("Root was not detected. Root is required to continue.", Toast.LENGTH_LONG);
+                return null;
+            }
+
+
+            if (!backupScriptOutputFile.exists()) {
+                // File already removed, nothing to do.
+                return null;
+            }
+
+            // Create the commands that will be run as superuser:
+            String[] commands = new String[] {
+                    "mount -o remount,rw /system",                         // Make system writable
+                    "yes | rm -f " + backupScriptLocalFile + " " + backupScriptOutputFile, // Write addon.d file
+                    "mount -o remount,ro /system",                         // Make it read-only again.
+            };
+
+            // Superuser execute:
+            Shell.SU.run(commands);
+
+            RunToastOnUiThread("Backup addon.d script removed.", Toast.LENGTH_LONG);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            applyingPatch = false;
+        }
+    }
+
     private void copyRawResourceToFile(int resource, File outputFile) throws IOException {
         InputStream stream = getResources().openRawResource(resource);
         FileOutputStream output = null;
@@ -386,6 +531,10 @@ public class MainActivity extends Activity {
 
     private void copyAlternativeFontToLocalStorage() throws IOException {
         copyRawResourceToFile(R.raw.ipa_gothic, ipaGothicFontLocalFile);
+    }
+
+    private void copyBackupScriptToLocalStorage() throws IOException {
+        copyRawResourceToFile(R.raw.backup, backupScriptLocalFile);
     }
 
     private void RunToastOnUiThread(final String text, final int length) {
