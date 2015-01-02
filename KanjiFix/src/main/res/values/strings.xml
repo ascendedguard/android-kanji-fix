@@ -12,6 +12,8 @@
     <string name="reference_text">The characters above should match the Kanji shown below:</string>
     <string name="more_info">More Information</string>
     <string name="install_alternative">Install Alternative Font</string>
+    <string name="install_backup_script">Install Backup Script</string>
+    <string name="remove_backup_script">Remove Backup Script</string>
 
     <string name="fix_not_applied">"Your device is showing <b>Chinese characters</b> instead of Kanji!\n\nClick the \"Apply Fix\" button below to prioritize Japanese Kanji instead. A device reboot will be required to see any changes.\n\nBelow is an example of what your current font looks like:"</string>
     <string name="fix_applied">"Your device is showing <b>Kanji</b>. You\'re all set!\n\nClick the \"Revert\" button below to restore your original fonts. A device reboot will be required.\n\nBelow is an example of what your current font looks like:"</string>
