@@ -16,6 +16,10 @@ android {
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
 
+    compileOptions {
+        encoding "UTF-8"
+    }
+
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 22
