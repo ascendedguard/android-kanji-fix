@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private File ipaGothicFontLocalFile;
     private File backupScriptLocalFile;
     private File ipaGothicFontOutputFile = new File("/system/fonts/IPAGothic.ttf");
+    private File addonFolder = new File("/system/addon.d");
     private File backupScriptOutputFile = new File("/system/addon.d/51-kanji.sh");
 
     private FallbackXmlFile xmlFile;
@@ -110,8 +111,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
         boolean scriptExists = backupScriptOutputFile.exists();
-        installBackupScriptItem.setVisible(!scriptExists);
-        removeBackupScriptItem.setVisible(scriptExists);
+        boolean addondExists = addonFolder.exists() && addonFolder.isDirectory();
+
+        installBackupScriptItem.setVisible(!scriptExists && addondExists);
+        removeBackupScriptItem.setVisible(scriptExists && addondExists);
 
         return true;
     }
