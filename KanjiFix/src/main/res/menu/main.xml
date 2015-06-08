@@ -7,4 +7,12 @@
           android:title="@string/install_alternative"
           android:orderInCategory="100"
           android:showAsAction="never" />
+    <item android:id="@+id/menu_install_backup_script"
+        android:title="@string/install_backup_script"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+    <item android:id="@+id/menu_remove_backup_script"
+        android:title="@string/remove_backup_script"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
 </menu>
