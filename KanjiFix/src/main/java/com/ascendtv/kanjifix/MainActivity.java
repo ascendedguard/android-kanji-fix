@@ -14,6 +14,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -125,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_more_info:
+                SendAnalyticsClick("More Info");
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ascendedguard/android-kanji-fix/wiki"));
                 startActivity(browserIntent);
                 return true;
@@ -133,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
 
+                SendAnalyticsClick("Install Alternative");
                 applyingPatch = true;
                 applyButton.setEnabled(false);
                 (new ApplyAlternativeChangesBackgroundTask()).execute();
@@ -142,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
 
+                SendAnalyticsClick("Install Backup Script");
                 applyingPatch = true;
                 (new CreateBackupScriptBackgroundTask()).execute();
                 return true;
@@ -150,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
 
+                SendAnalyticsClick("Remove Backup Script");
                 applyingPatch = true;
                 (new RemoveScriptBackgroundTask()).execute();
                 return true;
@@ -560,6 +568,7 @@ public class MainActivity extends AppCompatActivity {
 
             applyingPatch = true;
 
+            SendAnalyticsClick("Apply Fix");
             applyButton.setEnabled(false);
             (new ApplyChangesBackgroundTask()).execute();
         }
@@ -574,6 +583,7 @@ public class MainActivity extends AppCompatActivity {
 
             applyingPatch = true;
 
+            SendAnalyticsClick("Revert");
             revertButton.setEnabled(false);
             (new RevertChangesBackgroundTask()).execute();
         }
@@ -593,5 +603,15 @@ public class MainActivity extends AppCompatActivity {
         out.close();
     }
 
+    private static void SendAnalyticsClick(String label) {
+        if (KanjiFix.tracker == null) {
+            return;
+        }
 
+        KanjiFix.tracker.send(new HitBuilders.EventBuilder()
+               .setCategory("UX")
+                .setAction("click")
+                .setLabel(label)
+               .build());
+    }
 }
