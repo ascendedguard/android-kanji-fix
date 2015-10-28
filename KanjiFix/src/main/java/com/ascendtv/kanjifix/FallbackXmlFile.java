@@ -32,7 +32,7 @@ public class FallbackXmlFile {
                     "        <font weight=\"400\" style=\"normal\">NotoSansJP-Regular.otf</font>\n" +
                     "    </family>";
             droidAlternateFont = "    <family lang=\"ja\">\n" +
-                    "        <font weight=\"400\" style=\"normal\">MTLmr3m.ttf</font>\n" +
+                    "        <font weight=\"400\" style=\"normal\">IPAGothic.ttf</font>\n" +
                     "    </family>";
         }
         else if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // 5.0-6.0
