@@ -24,8 +24,18 @@ public class FallbackXmlFile {
 
         int SDK_INT = Build.VERSION.SDK_INT;
 
-        if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // 5.0+
-
+        if (SDK_INT >= Build.VERSION_CODES.M) { // 6.0+
+            droidReplaceFont = "    <family lang=\"zh-Hans\">\n" +
+                    "        <font weight=\"400\" style=\"normal\">NotoSansSC-Regular.otf</font>\n" +
+                    "    </family>";
+            droidJapaneseFont = "    <family lang=\"ja\">\n" +
+                    "        <font weight=\"400\" style=\"normal\">NotoSansJP-Regular.otf</font>\n" +
+                    "    </family>";
+            droidAlternateFont = "    <family lang=\"ja\">\n" +
+                    "        <font weight=\"400\" style=\"normal\">IPAGothic.ttf</font>\n" +
+                    "    </family>";
+        }
+        else if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) { // 5.0-6.0
             droidReplaceFont = "    <family lang=\"zh-Hans\">\n" +
                     "        <font weight=\"400\" style=\"normal\">NotoSansHans-Regular.otf</font>\n" +
                     "    </family>";
