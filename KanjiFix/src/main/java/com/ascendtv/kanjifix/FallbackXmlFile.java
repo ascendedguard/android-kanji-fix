@@ -82,10 +82,18 @@ public class FallbackXmlFile {
     }
 
     public boolean canApplyFix() {
-        int indexOfJapanese = contents.indexOf(droidJapaneseFont);
-        int indexOfFallback = contents.indexOf(droidReplaceFont);
+        StringBuilder file;
 
-        return indexOfFallback < indexOfJapanese;
+        try {
+            file = readFileContents(fontFile);
+        } catch (IOException ex) {
+            return false;
+        }
+
+        int indexOfJapanese = file.indexOf(droidJapaneseFont);
+        int indexOfFallback = file.indexOf(droidReplaceFont);
+
+        return indexOfJapanese != -1 && indexOfFallback != -1 && indexOfFallback < indexOfJapanese;
     }
 
     public void performFontSwap() {

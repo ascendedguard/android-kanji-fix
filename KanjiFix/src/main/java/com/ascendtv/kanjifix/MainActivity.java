@@ -237,9 +237,20 @@ public class MainActivity extends AppCompatActivity {
             // Superuser execute:
             Shell.SU.run(commands);
 
-            RunToastOnUiThread("Fonts successfully fixed. A reboot is required.", Toast.LENGTH_LONG);
+            validateChanges();
 
             return null;
+        }
+
+        private void validateChanges() {
+            boolean fixApplied = !xmlFile.canApplyFix();
+
+            if (fixApplied) {
+                RunToastOnUiThread("Fonts successfully fixed. A reboot is required.", Toast.LENGTH_LONG);
+            } else {
+                RunToastOnUiThread("Kanji Fix failed to apply the system changes.", Toast.LENGTH_LONG);
+            }
+
         }
 
         @Override
