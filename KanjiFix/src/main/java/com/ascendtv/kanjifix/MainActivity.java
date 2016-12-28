@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private Button applyButton;
     private TextView textField;
     private MenuItem installBackupScriptItem;
+    private MenuItem installAlternativeItem;
     private MenuItem removeBackupScriptItem;
 
     //private File originalFallback = new File("/system/etc/fonts.xml");
@@ -73,6 +75,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkUpdateStatus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // Not supported on Android 7.0+
+            textField.setText(R.string.fix_not_supported);
+            revertButton.setEnabled(false);
+            applyButton.setEnabled(false);
+            return;
+        }
+
         try {
             xmlFile = new FallbackXmlFile();
         }
@@ -106,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        installAlternativeItem = menu.findItem(R.id.menu_install_alternative);
         installBackupScriptItem = menu.findItem(R.id.menu_install_backup_script);
         removeBackupScriptItem = menu.findItem(R.id.menu_remove_backup_script);
         return true;
@@ -114,11 +125,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
+
+        boolean supported = Build.VERSION.SDK_INT < Build.VERSION_CODES.N;
         boolean scriptExists = backupScriptOutputFile.exists();
         boolean addondExists = addonFolder.exists() && addonFolder.isDirectory();
 
-        installBackupScriptItem.setVisible(!scriptExists && addondExists);
-        removeBackupScriptItem.setVisible(scriptExists && addondExists);
+        installAlternativeItem.setVisible(supported);
+        installBackupScriptItem.setVisible(!scriptExists && addondExists && supported);
+        removeBackupScriptItem.setVisible(scriptExists && addondExists && supported);
 
         return true;
     }
