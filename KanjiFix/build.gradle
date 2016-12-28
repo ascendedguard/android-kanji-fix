@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.2'
+        classpath 'com.android.tools.build:gradle:2.2.3'
     }
 }
 apply plugin: 'com.android.application'
@@ -13,8 +13,8 @@ repositories {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.1"
 
     compileOptions {
         encoding "UTF-8"
@@ -22,11 +22,11 @@ android {
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 25
     }
 }
 
 dependencies {
-	compile 'com.android.support:appcompat-v7:23.1.0'
-    compile 'com.google.android.gms:play-services-analytics:8.3.0'
+	compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.google.android.gms:play-services-analytics:10.0.1'
 }
